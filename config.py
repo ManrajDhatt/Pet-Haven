@@ -4,7 +4,9 @@ import os
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'fallback_secret_key')  
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))  
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(BASE_DIR, 'database.db')}"  
+    DB_DIR = "/var/lib/sqlite/"  # Persistent storage in Render
+    # SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(BASE_DIR, 'database.db')}" 
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{DB_DIR}database.db"  
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Flask-Mail Configuration (Now using env variables)

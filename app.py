@@ -1,4 +1,4 @@
-from flask import Flask, abort, render_template, redirect, url_for, flash, request
+from flask import Flask, abort, jsonify, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -20,6 +20,11 @@ app.config.from_object(Config)
 
 UPLOAD_FOLDER = 'static/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER  
+
+# Ensure the directory exists before creating the database
+db_dir = "/var/lib/sqlite/"
+if not os.path.exists(db_dir):
+    os.makedirs(db_dir)
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
@@ -45,6 +50,23 @@ with app.app_context():
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@app.route("/admin/view_data")
+@login_required
+def view_data():
+    if not current_user.is_admin:  # Only allow admins
+        abort(403)
+
+    users = User.query.all()
+    events = Event.query.all()
+    registrations = Registration.query.all()
+
+    user_data = [{"id": u.id, "username": u.username, "email": u.email} for u in users]
+    event_data = [{"id": e.id, "title": e.title, "date": e.date, "location": e.location} for e in events]
+    registration_data = [{"id": r.id, "user_id": r.user_id, "event_id": r.event_id} for r in registrations]
+
+    return jsonify({"users": user_data, "events": event_data, "registrations": registration_data})
+
 
 
 @app.route('/register', methods=['GET', 'POST'])

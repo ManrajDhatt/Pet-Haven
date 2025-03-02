@@ -10,6 +10,8 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_mail import Message,Mail
 from send_email import send_confirmation_email
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
 
 
 app = Flask(__name__)
@@ -30,8 +32,10 @@ mail=Mail(app)
 with app.app_context():
     db.create_all()
     # Hardcoded Admin
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") 
+    hashed_pw = bcrypt.generate_password_hash(ADMIN_PASSWORD).decode('utf-8')
+    
     if not User.query.filter_by(email="admin@example.com").first():
-        hashed_pw = bcrypt.generate_password_hash("admin123").decode('utf-8')
         admin = User(username="admin", email="admin@example.com", password=hashed_pw, is_admin=True)
         db.session.add(admin)
         db.session.commit()

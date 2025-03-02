@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}My Registrations{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">My Registered Events</h2>
+
+    <!-- Filter Buttons -->
+    <div class="filter-buttons mb-4">
+        <button class="filter-btn active" data-filter="all">All Events</button>
+        <button class="filter-btn" data-filter="upcoming">Upcoming Events</button>
+        <button class="filter-btn" data-filter="past">Past Events</button>
+    </div>
+
+    {% if registered_events %}
+        <div class="row" id="events-container">
+            {% for reg, event, can_edit in registered_events %}
+                <div class="col-md-4 event-item" data-date="{{ event.date }}">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Event: {{ event.title }}</h5>
+                            <p class="card-text">
+                                <strong>Event Date:</strong> {{ event.date }}
+                                <span class="relative-date" data-event-date="{{ event.date }}"></span>
+                            </p>
+                            <p class="card-text"><strong>Pet Name:</strong> {{ reg.pet_name }}</p>
+                            <p class="card-text"><strong>Pet Type:</strong> {{ reg.pet_type }}</p>
+                            <p class="card-text"><strong>Pet Age:</strong> {{ reg.pet_age }} years</p>
+                            <p class="card-text">
+                                <stron class="me-2">Status:</strong> 
+                                {% if reg.paid %}
+                                    <span class="badge-pill bg-success">Paid</span>
+                                {% else %}
+                                    <span class=" badge-pill bg-warning text-dark">Pending Payment</span>
+                                {% endif %}
+                            </p>
+                            <div class="button-group" style="display: flex; gap: 10px; margin-top: 15px;">
+                                {% if not reg.paid %}
+                                    <a href="{{ url_for('pay_fee', registration_id=reg.id) }}" class="btn btn-primary">Pay Fee</a>
+                                {% endif %}
+                                
+                                {% if can_edit %}
+                                    <a href="{{ url_for('edit_registration', registration_id=reg.id) }}" class="btn btn-secondary">
+                                        <i class="fas fa-edit"></i> Edit Details
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted"><i class="fas fa-lock"></i> Event has passed</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No registrations found.</p>
+    {% endif %}
+</div>
+
+<style>
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 2px solid #4CAF50;
+    background: white;
+    color: #4CAF50;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    background: #4CAF50;
+    color: white;
+}
+
+.filter-btn.active {
+    background: #4CAF50;
+    color: white;
+}
+
+.relative-date {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+    margin-left: 5px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const eventItems = document.querySelectorAll('.event-item');
+    
+    // Function to check if a date is in the past
+    function isPastDate(dateStr) {
+        const eventDate = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time part for accurate date comparison
+        return eventDate < today;
+    }
+
+    // Function to update relative dates
+    function updateRelativeDates() {
+        const relativeDateElements = document.querySelectorAll('.relative-date');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        relativeDateElements.forEach(element => {
+            const eventDate = new Date(element.dataset.eventDate);
+            eventDate.setHours(0, 0, 0, 0);
+
+            const diffTime = eventDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let relativeText = '';
+            if (diffDays === 0) {
+                relativeText = '(Today)';
+            } else if (diffDays === 1) {
+                relativeText = '(Tomorrow)';
+            } else if (diffDays > 1) {
+                relativeText = `(in ${diffDays} days)`;
+            } else {
+                relativeText = '(Past event)';
+            }
+
+            element.textContent = relativeText;
+        });
+    }
+
+    // Filter function
+    function filterEvents(filter) {
+        eventItems.forEach(item => {
+            const dateStr = item.dataset.date;
+            
+            switch(filter) {
+                case 'upcoming':
+                    item.style.display = !isPastDate(dateStr) ? 'block' : 'none';
+                    break;
+                case 'past':
+                    item.style.display = isPastDate(dateStr) ? 'block' : 'none';
+                    break;
+                default: // 'all'
+                    item.style.display = 'block';
+            }
+        });
+    }
+
+    // Add click handlers to filter buttons
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            button.classList.add('active');
+            // Apply filter
+            filterEvents(button.dataset.filter);
+        });
+    });
+
+    // Initial update of relative dates
+    updateRelativeDates();
+});
+</script>
+{% endblock %}

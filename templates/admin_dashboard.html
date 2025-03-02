@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+    {% if events %}
+            <div class="grid" id="competitionsGrid">
+                {% for event in events %}
+                <div class="card" onclick="showModal( '{{ event.id }}')">
+                    <img src="{{ url_for('static', filename='images/'+event.image_filename) }}" class="card-img" alt="{{ event.title }}">
+                    <div class="card-content">
+                        <h2 style="margin-bottom: 2px; color: #333;">{{ event.title }}</h2>
+                
+                        <p style="display: flex; align-items: center; gap: 8px; font-size: 18px; color: #050908;">
+                            <i class="fa-regular fa-calendar"></i> {{ event.date }}
+                        </p>
+                                        
+                        <p style="display: flex; align-items: center;margin-bottom: 10px; gap: 8px; font-size: 18px; color: #151111;">
+                            <i class="fa-solid fa-location-dot"></i> {{ event.location}}
+                        </p>
+                
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                            <p class="price" style="font-size: 20px; font-weight: bold; color: #0a7737;"> <span style="color: black;">Fees:</span>₹{{ event.fee }}
+                            </p>
+                            <a href="#" onclick="showModal(event, '{{ event.id }}', '{{ event.title }}', '{{ event.description }}', '{{ event.date }}', '{{ event.fee }}', '{{ event.image_filename }}', '{{ event.location }}', '{{ event.eligibility }}', '{{ event.prizes }}')"
+                                class="view-btn" 
+                                style="padding: 8px 15px; background: #0c853b; color: white; text-decoration: none; border-radius: 5px;">
+                                 Register Now
+                             </a>
+    
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                {% include "modal.html" %}
+                {% endfor %}
+    
+
+    <!-- <script src="{{ url_for('static', filename='app.js') }}"></script> -->
+    
+            </div>
+        {% else %}
+            <p>No events available at the moment.</p>
+        {% endif %}
+    
+    {% endblock %}
+    

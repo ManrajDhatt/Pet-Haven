@@ -1,0 +1,16 @@
+<div class="modal" id="modal-{{ event.id }}" onclick="closeModal('{{ event.id }}', event)">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('{{ event.id }}')">&times;</span>
+        <img src="{{ url_for('static', filename='images/'+event.image_filename) }}" class="card-img" alt="{{ event.title }}">
+        <h2>{{ event.title }}</h2>
+        <p><i class="fa-solid fa-calendar"></i> {{ event.date }}</p>
+        <p><i class="fa-solid fa-location-dot"></i> {{ event.location }}</p>
+        <p><strong>Fees:</strong> ₹{{ event.fee }}</p>
+        <p><strong>Description:</strong> {{ event.description }}</p>
+        <p><strong>Eligibility:</strong> {{ event.eligibility }}</p>
+        <p><strong>Prizes:</strong> {{ event.prizes }}</p>
+          
+    
+        <button class="payment-btn" onclick="redirectToRegister('{{ event.id }}')">Register</button>
+    </div>
+</div>

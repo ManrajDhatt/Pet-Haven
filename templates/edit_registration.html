@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Registration - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Edit Registration</h2>
+    <h3 class="event-title">{{ event.title }}</h3>
+    <p class="event-date">Event Date: {{ event.date }}</p>
+
+    <form method="POST" class="auth-form">
+        {{ form.hidden_tag() }}
+
+        <div class="input-group">
+            <label>Pet Name</label>
+            {{ form.pet_name(class="input-field", value=registration.pet_name) }}
+            {% if form.pet_name.errors %}
+                {% for error in form.pet_name.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="input-group">
+            <label>Pet Type</label>
+            {{ form.pet_type(class="input-field", value=registration.pet_type) }}
+            {% if form.pet_type.errors %}
+                {% for error in form.pet_type.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="input-group">
+            <label>Pet Age</label>
+            {{ form.pet_age(class="input-field", value=registration.pet_age) }}
+            {% if form.pet_age.errors %}
+                {% for error in form.pet_age.errors %}
+                    <span class="error-message">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="auth-btn">Update Registration</button>
+            <a href="{{ url_for('registrations') }}" class="auth-btn cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .event-title {
+        color: #333;
+        margin: 10px 0;
+        font-size: 1.2em;
+    }
+    .event-date {
+        color: #666;
+        margin-bottom: 20px;
+    }
+    .error-message {
+        color: #dc3545;
+        font-size: 0.9em;
+        margin-top: 5px;
+        display: block;
+    }
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .auth-btn.cancel {
+        background: #6c757d;
+    }
+    .auth-btn.cancel:hover {
+        background: #5a6268;
+    }
+</style>
+{% endblock %} 

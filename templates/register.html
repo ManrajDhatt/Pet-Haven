@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Register</h2>
+
+    <form method="POST" class="auth-form">
+        {{ form.hidden_tag() }}
+        <div class="input-group">
+            <label>Username</label>
+            {{ form.username(class="input-field") }}
+        </div>
+        <div class="input-group">
+            <label>Email</label>
+            {{ form.email(class="input-field") }}
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            {{ form.password(class="input-field") }}
+        </div>
+        <div class="input-group">
+            <label>Confirm Password</label>
+            {{ form.confirm_password(class="input-field") }}
+        </div>
+        <button type="submit" class="auth-btn">{{ form.submit.label }}</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Event{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Add New Event</h2>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <p class="{{ category }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}  <!-- CSRF Token -->
+
+        <div class="form-group">
+            <label for="title">{{ form.title.label }}</label>
+            {{ form.title(class="input-field", placeholder="Enter event title") }}
+        </div>
+
+        <div class="form-group">
+            <label for="description">{{ form.description.label }}</label>
+            {{ form.description(class="input-field", placeholder="Enter event description") }}
+        </div>
+
+
+        <div class="form-group">
+            <label for="date">{{ form.date.label }}</label>
+            {{ form.date(class="input-field", type="date") }}  <!-- Calendar date picker -->
+        </div>
+
+        <div class="form-group">
+            <label for="location">{{ form.location.label }}</label>
+            {{ form.location(class="input-field", placeholder="Enter event Location") }}
+        </div>
+        <div class="form-group">
+            <label for="eligibility">{{ form.eligibility.label }}</label>
+            {{ form.eligibility(class="input-field", placeholder="Eligibility for the Event") }}
+        </div>
+        <div class="form-group">
+            <label for="prizes">{{ form.prizes.label }}</label>
+            {{ form.prizes(class="input-field", placeholder="Enter Prizes for the Event") }}
+        </div>
+
+        
+        <div class="form-group">
+            <label for="fee">{{ form.fee.label }}</label>
+            {{ form.fee(class="input-field", value="500", readonly=true) }}  <!-- Fixed fee -->
+        </div>
+
+        <div class="form-group">
+            <label for="image">{{ form.image.label }}</label>
+            {{ form.image(class="input-file") }}
+        </div>
+            <br>
+        <div class="form-group">
+            {{ form.submit(class="add-event-btn") }}
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

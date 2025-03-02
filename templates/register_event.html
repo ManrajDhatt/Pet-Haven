@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Register for {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2>Register for {{ event.title }}</h2>
+
+    <form method="POST" class="auth-form">
+        {{ form.hidden_tag() }}
+
+        <div class="input-group">
+            <label>Pet Name</label>
+            {{ form.pet_name(class="input-field") }}
+        </div>
+        <div class="input-group">
+            <label>Pet Type</label>
+            {{ form.pet_type(class="input-field") }}
+        </div>
+        <div class="input-group">
+            <label>Pet Age</label>
+            {{ form.pet_age(class="input-field") }}
+        </div>
+        <button type="submit" class="auth-btn">{{ form.submit.label }}</button>
+    </form>
+</div>
+{% endblock %}

@@ -7,7 +7,8 @@
             <div class="grid" id="competitionsGrid">
                 {% for event in events %}
                 <div class="card" onclick="showModal( '{{ event.id }}')">
-                    <img src="{{ url_for('static', filename='images/'+event.image_filename) }}" class="card-img" alt="{{ event.title }}">
+                    <img src="{{ event.image_filename }}" class="card-img" alt="{{ event.title }}">
+
                     <div class="card-content">
                         <h2 style="margin-bottom: 2px; color: #333;">{{ event.title }}</h2>
                 

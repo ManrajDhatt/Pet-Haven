@@ -1,7 +1,8 @@
 <div class="modal" id="modal-{{ event.id }}" onclick="closeModal('{{ event.id }}', event)">
     <div class="modal-content">
         <span class="close" onclick="closeModal('{{ event.id }}')">&times;</span>
-        <img src="{{ url_for('static', filename='images/'+event.image_filename) }}" class="card-img" alt="{{ event.title }}">
+        <img src="{{ event.image_filename }}" class="card-img" alt="{{ event.title }}">
+
         <h2>{{ event.title }}</h2>
         <p><i class="fa-solid fa-calendar"></i> {{ event.date }}</p>
         <p><i class="fa-solid fa-location-dot"></i> {{ event.location }}</p>

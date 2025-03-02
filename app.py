@@ -11,6 +11,9 @@ from datetime import datetime
 from flask_mail import Message,Mail
 from send_email import send_confirmation_email
 from dotenv import load_dotenv
+import cloudinary.uploader
+
+
 load_dotenv()  # Load environment variables from .env file
 
 
@@ -116,11 +119,17 @@ def add_event():
         return redirect(url_for('competitions'))
     form = EventForm()  
     if form.validate_on_submit():
-        image_filename = "default.png"
+        # image_filename = "default.png"
+        image_url="https://res.cloudinary.com/diyvaqnyj/image/upload/v1740916253/default_pgbdyf.png"
+        # image_url = "https://res.cloudinary.com/your_cloud_name/image/upload/default.png"  # Default image
+
         if form.image.data:
             image_filename = secure_filename(form.image.data.filename)
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
-            form.image.data.save(image_path)
+            # Upload to Cloudinary
+            upload_result = cloudinary.uploader.upload(form.image.data, folder="event_images")
+            image_url = upload_result["secure_url"]  # Get Cloudinary image URL
+
+
 
         new_event = Event(
             title=form.title.data,
@@ -130,7 +139,7 @@ def add_event():
             prizes=form.prizes.data,
             eligibility=form.eligibility.data,
             fee=form.fee.data,
-            image_filename=image_filename 
+            image_filename=image_url 
         )
         db.session.add(new_event)
         db.session.commit()

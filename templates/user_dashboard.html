@@ -47,7 +47,8 @@
                  data-location="{{ event.location }}"
                  data-date="{{ event.date }}"
                  data-fee="{{ event.fee }}">
-                <img src="{{ url_for('static', filename='images/'+event.image_filename) }}" class="card-img" alt="{{ event.title }}">
+                 <img src="{{ event.image_filename }}" class="card-img" alt="{{ event.title }}">
+
                 <div class="card-content">
                     <h2 style="margin-bottom: 10px; color: #333;">{{ event.title }}</h2>
                     <p style="display: flex; align-items: center; gap: 8px; font-size: 18px; color: #050908;">
@@ -72,7 +73,8 @@
             <div id="modal-{{ event.id }}" class="modal" onclick="closeModal('{{ event.id }}', event)">
                 <div class="modal-content" onclick="event.stopPropagation()">
                     <span class="close" onclick="closeModal('{{ event.id }}')">&times;</span>
-                    <img src="{{ url_for('static', filename='images/'+event.image_filename) }}" alt="{{ event.title }}">
+                    <img src="{{ event.image_filename }}" class="card-img" alt="{{ event.title }}">
+
                     <h2>{{ event.title }}</h2>
                     <div class="info-container">
                         <i class="fa-regular fa-calendar"></i>

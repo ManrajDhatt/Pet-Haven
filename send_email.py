@@ -1,44 +1,76 @@
-from flask import current_app, url_for
+from flask import current_app
 from flask_mail import Mail, Message
-import base64
-import os
-def encode_image(image_path):
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode('utf-8')
 
 mail = Mail()  # Initialize Mail without app instance
 
 def send_confirmation_email(email, username, event, pet_name, pet_type, pet_age):
     with current_app.app_context():  # Ensure the correct Flask context
-        image_path = os.path.join(current_app.root_path, 'static/images', event.image_filename)
-        image_base64 = encode_image(image_path)
-        subject = f"Registration Confirmation for {event.title}"
+        
+        subject = f"🎉 Registration Confirmation for {event.title}!"
+
         message_body = f"""
-        <h2>Hi {username},</h2>
+        <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; border-radius: 10px;">
+            <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
+                <h1 style="color: #ff6600; text-align: center;">🎊 {event.title} 🎊</h1>
+                
+                <p style="font-size: 16px; color: #333;">Hi <strong>{username}</strong>,</p>
+                
+                <p style="font-size: 16px; color: #333;">
+                    You have successfully registered for <strong>{event.title}</strong>. Below are the details of your registration.
+                </p>
+                
+                <h2 style="color: #ff6600; text-align: center;">📅 Event Details</h2>
+                
+                <div style="text-align: center;">
+                    <img src="https://pet-haven-0fux.onrender.com/static/images/{event.image_filename}" 
+                         alt="Event Image" width="400" 
+                         style="border-radius: 10px; box-shadow: 0px 0px 8px rgba(0,0,0,0.1);">
+                </div>
+                
+                <p style="font-size: 14px; color: #555; text-align: center;">
+                    <em>{event.description}</em>
+                </p>
 
-        <p>You have successfully registered for <strong>{event.title}</strong>.</p>
+                <ul style="list-style-type: none; padding: 0; text-align: center;">
+                    <li><strong>📅 Date:</strong> {event.date}</li>
+                    <li><strong>📍 Location:</strong> {event.location}</li>
+                    <li><strong>💰 Entry Fee:</strong> ₹{event.fee:.2f}</li>
+                    <li><strong>🏆 Prizes:</strong> {event.prizes}</li>
+                    <li><strong>✔ Eligibility:</strong> {event.eligibility}</li>
+                </ul>
 
-        <h3>Event Details:</h3>
-        <p>
-        <img src="data:image/jpeg;base64,{image_base64}" width="300">
-        </p>
-        <ul>
-            <li><strong>Date:</strong> {event.date}</li>
-            <li><strong>Location:</strong> {event.location}</li>
-            <li><strong>Entry Fee:</strong> ₹{event.fee}</li>
-        </ul>
+                <hr style="border: 1px solid #ddd; margin: 20px 0;">
 
-        <h3>Your Pet Details:</h3>
-        <ul>
-            <li><strong>Name:</strong> {pet_name}</li>
-            <li><strong>Type:</strong> {pet_type}</li>
-            <li><strong>Age:</strong> {pet_age}</li>
-        </ul>
+                <h2 style="color: #ff6600; text-align: center;">🐶 Your Pet Details</h2>
+                
+                <ul style="list-style-type: none; padding: 0; text-align: center;">
+                    <li><strong>📛 Name:</strong> {pet_name}</li>
+                    <li><strong>🦴 Type:</strong> {pet_type}</li>
+                    <li><strong>🎂 Age:</strong> {pet_age} years</li>
+                </ul>
 
-        <p>Thank you for registering!</p>
+                <p style="text-align: center; font-size: 16px; color: #333;">
+                    We are excited to have you and <strong>{pet_name}</strong> at the event! 🐕🐾
+                </p>
 
-        <p>Best Regards,</p>
-        <p>Event Team</p>
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="https://pet-haven-0fux.onrender.com" 
+                       style="background-color: #ff6600; color: white; padding: 10px 20px; 
+                              text-decoration: none; border-radius: 5px; font-size: 16px;">
+                        Visit Event Page
+                    </a>
+                </div>
+
+                <p style="text-align: center; font-size: 14px; color: #666; margin-top: 20px;">
+                    📩 If you have any questions, feel free to contact us!
+                </p>
+
+                <p style="text-align: center; font-size: 16px; font-weight: bold; color: #333;">
+                    Best Regards, <br>
+                    🐾 Pet Haven Team 🐾
+                </p>
+            </div>
+        </div>
         """
 
         msg = Message(

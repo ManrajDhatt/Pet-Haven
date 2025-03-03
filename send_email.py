@@ -29,7 +29,7 @@ def send_confirmation_email(email, username, event, pet_name, pet_type, pet_age)
                         </ul>
                     </div>
                     <div style="width: 45%; text-align: right;">
-                        <img src="{event.image_filename}" alt="Event Image" width="200" 
+                        <img src="{event.image_filename}" alt="Event Image" width="230" 
                              style="border-radius: 10px; box-shadow: 0px 0px 8px rgba(0,0,0,0.1);">
                     </div>
                 </div>

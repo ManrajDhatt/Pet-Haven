@@ -12,6 +12,11 @@ from flask_mail import Message,Mail
 from send_email import send_confirmation_email
 from dotenv import load_dotenv
 import cloudinary.uploader
+from flask_migrate import Migrate
+
+from app import db
+from models import Registration
+from datetime import datetime, timezone
 
 
 load_dotenv()  # Load environment variables from .env file
@@ -30,18 +35,25 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 mail=Mail(app)
+migrate = Migrate(app, db)
 
 # Create database tables
 with app.app_context():
-    db.create_all()
+    # db.create_all()
     # Hardcoded Admin
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") 
     hashed_pw = bcrypt.generate_password_hash(ADMIN_PASSWORD).decode('utf-8')
-    
+    registrations = Registration.query.filter(Registration.timestamp == None).all()
+
+    for reg in registrations:
+        reg.timestamp = datetime.now(timezone.utc)
+
+    db.session.commit()
     if not User.query.filter_by(email="admin@example.com").first():
         admin = User(username="admin", email="admin@example.com", password=hashed_pw, is_admin=True)
         db.session.add(admin)
         db.session.commit()
+
 
 
 
@@ -291,6 +303,15 @@ def edit_event(event_id):
 
 
 
+@app.route('/all-registrations')
+@login_required
+def all_registrations():
+    if not current_user.is_admin:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('home'))
+
+    registrations = Registration.query.all()  # Fetch all registrations
+    return render_template('all_registrations.html', registrations=registrations)
 
 
 

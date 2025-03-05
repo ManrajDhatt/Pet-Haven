@@ -254,6 +254,43 @@ def settings():
 
 
 
+@app.route('/edit_event/<int:event_id>', methods=['GET', 'POST'])
+@login_required
+def edit_event(event_id):
+    if not current_user.is_admin:
+        flash("You are not authorized to edit events.", "danger")
+        return redirect(url_for('dashboard'))
+
+    event = Event.query.get_or_404(event_id)
+    form = EventForm(obj=event)  # Pre-fill form with event details
+
+    if form.validate_on_submit():
+        event.title = form.title.data
+        event.description = form.description.data
+        event.date = form.date.data
+        event.location = form.location.data
+        event.prizes = form.prizes.data
+        event.eligibility = form.eligibility.data
+        event.fee = form.fee.data
+
+        # Handle image upload
+        if form.image.data:
+            image_filename = secure_filename(form.image.data.filename)
+            upload_result = cloudinary.uploader.upload(form.image.data, folder="event_images")
+            event.image_filename = upload_result["secure_url"]  
+        
+        try:
+            db.session.commit()
+            flash("Event updated successfully!", "success")
+            return redirect(url_for('admin_dashboard'))
+        except:
+            db.session.rollback()
+            flash("Error updating event.", "danger")
+
+    return render_template('edit_event.html', form=form, event=event)
+
+
+
 
 
 

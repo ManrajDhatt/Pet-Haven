@@ -11,7 +11,8 @@
         <p><strong>Eligibility:</strong> {{ event.eligibility }}</p>
         <p><strong>Prizes:</strong> {{ event.prizes }}</p>
           
-    
-        <button class="payment-btn" onclick="redirectToRegister('{{ event.id }}')">Register</button>
+        <a href="{{ url_for('edit_event', event_id=event.id) }}" class="btn btn-warning">Edit</a>
+
+        <!-- <button class="payment-btn" onclick="redirectToRegister('{{ event.id }}')">Update</button> -->
     </div>
 </div>

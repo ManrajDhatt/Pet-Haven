@@ -23,11 +23,13 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                             <p class="price" style="font-size: 20px; font-weight: bold; color: #0a7737;"> <span style="color: black;">Fees:</span>₹{{ event.fee }}
                             </p>
-                            <a href="#" onclick="showModal(event, '{{ event.id }}', '{{ event.title }}', '{{ event.description }}', '{{ event.date }}', '{{ event.fee }}', '{{ event.image_filename }}', '{{ event.location }}', '{{ event.eligibility }}', '{{ event.prizes }}')"
+                            <!-- <a href="#" onclick="showModal(event, '{{ event.id }}', '{{ event.title }}', '{{ event.description }}', '{{ event.date }}', '{{ event.fee }}', '{{ event.image_filename }}', '{{ event.location }}', '{{ event.eligibility }}', '{{ event.prizes }}')"
                                 class="view-btn" 
                                 style="padding: 8px 15px; background: #0c853b; color: white; text-decoration: none; border-radius: 5px;">
-                                 Register Now
-                             </a>
+                                 Update Event
+                             </a> -->
+                             <a href="{{ url_for('edit_event', event_id=event.id) }}" class="btn btn-warning">Edit</a>
+
     
                             
                         </div>

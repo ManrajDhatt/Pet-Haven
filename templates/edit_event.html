@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container">
+    <h2>Edit Event</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}  <!-- CSRF Token -->
+
+        <div class="form-group">
+            <label for="title">{{ form.title.label }}</label>
+            {{ form.title(class="input-field", placeholder="Enter event title") }}
+        </div>
+
+        <div class="form-group">
+            <label for="description">{{ form.description.label }}</label>
+            {{ form.description(class="input-field", placeholder="Enter event description") }}
+        </div>
+
+        <div class="form-group">
+            <label for="date">{{ form.date.label }}</label>
+            {{ form.date(class="input-field", type="date") }}
+        </div>
+
+        <div class="form-group">
+            <label for="location">{{ form.location.label }}</label>
+            {{ form.location(class="input-field", placeholder="Enter event location") }}
+        </div>
+
+        <div class="form-group">
+            <label for="eligibility">{{ form.eligibility.label }}</label>
+            {{ form.eligibility(class="input-field", placeholder="Eligibility for the event") }}
+        </div>
+
+        <div class="form-group">
+            <label for="prizes">{{ form.prizes.label }}</label>
+            {{ form.prizes(class="input-field", placeholder="Enter prizes for the event") }}
+        </div>
+
+        <div class="form-group">
+            <label for="fee">{{ form.fee.label }}</label>
+            {{ form.fee(class="input-field") }} 
+        </div>
+
+        <div class="form-group">
+            <label>Current Image:</label><br>
+            <img src="{{ event.image_filename }}" alt="Event Image" width="200">
+        </div>
+
+        <div class="form-group">
+            <label for="image">{{ form.image.label }}</label>
+            {{ form.image(class="input-file") }}
+        </div>
+
+        <br>
+
+        <div class="form-group">
+            {{ form.submit(class="add-event-btn") }}
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

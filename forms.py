@@ -27,7 +27,7 @@ class EventForm(FlaskForm):
     fee = FloatField('Fee', validators=[DataRequired()])
     image = FileField('Event Image', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])  
 
-    submit = SubmitField('Add Event')
+    submit = SubmitField('Save Changes')
 
 
 class RegistrationEventForm(FlaskForm):

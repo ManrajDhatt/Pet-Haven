@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 
@@ -32,10 +33,13 @@ class Registration(db.Model):
     pet_type = db.Column(db.String(100), nullable=False)
     pet_age=db.Column(db.Integer,nullable=False)
     paid = db.Column(db.Boolean, default=False)
-
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))  
+    
      # Relationship with Event
     event = db.relationship('Event', backref=db.backref('registrations', lazy=True))
 
+    # Relationship with User 
+    user = db.relationship('User', backref=db.backref('registrations', lazy=True))
 
 
 

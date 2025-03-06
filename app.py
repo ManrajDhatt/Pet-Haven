@@ -11,6 +11,14 @@ from datetime import datetime
 from flask_mail import Message,Mail
 from send_email import send_confirmation_email
 from dotenv import load_dotenv
+import cloudinary.uploader
+from flask_migrate import Migrate
+
+from app import db
+from models import Registration
+from datetime import datetime, timezone
+
+
 load_dotenv()  # Load environment variables from .env file
 
 
@@ -32,18 +40,25 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 mail=Mail(app)
+migrate = Migrate(app, db)
 
 # Create database tables
 with app.app_context():
-    db.create_all()
+    # db.create_all()
     # Hardcoded Admin
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") 
     hashed_pw = bcrypt.generate_password_hash(ADMIN_PASSWORD).decode('utf-8')
-    
+    registrations = Registration.query.filter(Registration.timestamp == None).all()
+
+    for reg in registrations:
+        reg.timestamp = datetime.now(timezone.utc)
+
+    db.session.commit()
     if not User.query.filter_by(email="admin@example.com").first():
         admin = User(username="admin", email="admin@example.com", password=hashed_pw, is_admin=True)
         db.session.add(admin)
         db.session.commit()
+
 
 
 
@@ -138,11 +153,17 @@ def add_event():
         return redirect(url_for('competitions'))
     form = EventForm()  
     if form.validate_on_submit():
-        image_filename = "default.png"
+        # image_filename = "default.png"
+        image_url="https://res.cloudinary.com/diyvaqnyj/image/upload/v1740916253/default_pgbdyf.png"
+        # image_url = "https://res.cloudinary.com/your_cloud_name/image/upload/default.png"  # Default image
+
         if form.image.data:
             image_filename = secure_filename(form.image.data.filename)
-            image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
-            form.image.data.save(image_path)
+            # Upload to Cloudinary
+            upload_result = cloudinary.uploader.upload(form.image.data, folder="event_images")
+            image_url = upload_result["secure_url"]  # Get Cloudinary image URL
+
+
 
         new_event = Event(
             title=form.title.data,
@@ -152,7 +173,7 @@ def add_event():
             prizes=form.prizes.data,
             eligibility=form.eligibility.data,
             fee=form.fee.data,
-            image_filename=image_filename 
+            image_filename=image_url 
         )
         db.session.add(new_event)
         db.session.commit()
@@ -267,6 +288,52 @@ def settings():
 
 
 
+@app.route('/edit_event/<int:event_id>', methods=['GET', 'POST'])
+@login_required
+def edit_event(event_id):
+    if not current_user.is_admin:
+        flash("You are not authorized to edit events.", "danger")
+        return redirect(url_for('dashboard'))
+
+    event = Event.query.get_or_404(event_id)
+    form = EventForm(obj=event)  # Pre-fill form with event details
+
+    if form.validate_on_submit():
+        event.title = form.title.data
+        event.description = form.description.data
+        event.date = form.date.data
+        event.location = form.location.data
+        event.prizes = form.prizes.data
+        event.eligibility = form.eligibility.data
+        event.fee = form.fee.data
+
+        # Handle image upload
+        if form.image.data:
+            image_filename = secure_filename(form.image.data.filename)
+            upload_result = cloudinary.uploader.upload(form.image.data, folder="event_images")
+            event.image_filename = upload_result["secure_url"]  
+        
+        try:
+            db.session.commit()
+            flash("Event updated successfully!", "success")
+            return redirect(url_for('admin_dashboard'))
+        except:
+            db.session.rollback()
+            flash("Error updating event.", "danger")
+
+    return render_template('edit_event.html', form=form, event=event)
+
+
+
+@app.route('/all-registrations')
+@login_required
+def all_registrations():
+    if not current_user.is_admin:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('home'))
+
+    registrations = Registration.query.all()  # Fetch all registrations
+    return render_template('all_registrations.html', registrations=registrations)
 
 
 
@@ -283,6 +350,39 @@ def pay_fee(registration_id):
 
     flash("Payment successful!", "success")
     return redirect(url_for('registrations'))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
+@app.route('/verify_payment/<int:registration_id>', methods=['GET', 'POST'])
+@login_required
+def verify_payment(registration_id):
+    if not current_user.is_admin:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('home'))
+
+    registration = Registration.query.get_or_404(registration_id)
+    registration.paid = True
+    db.session.commit()
+
+    flash("Payment verified successfully!", "success")
+    return redirect(url_for('all_registrations'))
+
+@app.route('/delete_registration/<int:registration_id>', methods=['GET', 'POST'])
+@login_required
+def delete_registration(registration_id):
+    if not current_user.is_admin:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('home'))
+
+    registration = Registration.query.get_or_404(registration_id)
+    db.session.delete(registration)
+    db.session.commit()
+
+    flash("Registration deleted successfully!", "success")
+    return redirect(url_for('all_registrations'))
+
 
 @app.route('/logout')
 @login_required

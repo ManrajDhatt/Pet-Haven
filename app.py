@@ -329,6 +329,39 @@ def pay_fee(registration_id):
     flash("Payment successful!", "success")
     return redirect(url_for('registrations'))
 
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
+@app.route('/verify_payment/<int:registration_id>', methods=['GET', 'POST'])
+@login_required
+def verify_payment(registration_id):
+    if not current_user.is_admin:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('home'))
+
+    registration = Registration.query.get_or_404(registration_id)
+    registration.paid = True
+    db.session.commit()
+
+    flash("Payment verified successfully!", "success")
+    return redirect(url_for('all_registrations'))
+
+@app.route('/delete_registration/<int:registration_id>', methods=['GET', 'POST'])
+@login_required
+def delete_registration(registration_id):
+    if not current_user.is_admin:
+        flash("Unauthorized access!", "danger")
+        return redirect(url_for('home'))
+
+    registration = Registration.query.get_or_404(registration_id)
+    db.session.delete(registration)
+    db.session.commit()
+
+    flash("Registration deleted successfully!", "success")
+    return redirect(url_for('all_registrations'))
+
+
 @app.route('/logout')
 @login_required
 def logout():

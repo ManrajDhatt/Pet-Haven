@@ -27,6 +27,12 @@
                     {% else %}
                         N/A  {# Handles None case #}
                     {% endif %}
+                    <td>
+                        {% if not reg.paid %}
+                            <a href="{{ url_for('verify_payment', registration_id=reg.id) }}" class="btn btn-success btn-sm">Verify Payment</a>
+                        {% endif %}
+                        <a href="{{ url_for('delete_registration', registration_id=reg.id) }}" class="btn btn-danger btn-sm">Delete</a>
+                    </td>
                 </td>
             </tr>
             {% endfor %}

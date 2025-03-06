@@ -9,7 +9,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask_mail import Message,Mail
-from send_email import send_confirmation_email
+from send_email import send_confirmation_email, send_update_email
 from dotenv import load_dotenv
 import cloudinary.uploader
 from flask_migrate import Migrate
@@ -265,7 +265,6 @@ def settings():
     return render_template("settings.html")
 
 
-
 @app.route('/edit_event/<int:event_id>', methods=['GET', 'POST'])
 @login_required
 def edit_event(event_id):
@@ -294,14 +293,19 @@ def edit_event(event_id):
         try:
             db.session.commit()
             flash("Event updated successfully!", "success")
+
+            # Send notifications if the checkbox is selected
+            if 'send_notifications' in request.form:
+                registrations = Registration.query.filter_by(event_id=event.id).all()
+                for reg in registrations:
+                    send_update_email(reg.user.email, reg.user.username, event)
+
             return redirect(url_for('admin_dashboard'))
         except:
             db.session.rollback()
             flash("Error updating event.", "danger")
 
     return render_template('edit_event.html', form=form, event=event)
-
-
 
 @app.route('/all-registrations')
 @login_required

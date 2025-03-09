@@ -12,9 +12,9 @@
     </div>
 
     {% if registered_events %}
-        <div class="row" id="events-container">
+        <div class="row g-4" id="events-container">
             {% for reg, event, can_edit in registered_events %}
-                <div class="col-md-4 event-item" data-date="{{ event.date }}">
+                <div class="col-md-4 event-item gap-10" data-date="{{ event.date }}">
                     <div class="card shadow-sm mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Event: {{ event.title }}</h5>

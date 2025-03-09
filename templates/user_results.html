@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>My Competition Results</h2>
+
+{% if past_results %}
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Position</th>
+                <th>Status</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in past_results %}
+            <tr>
+                <td>{{ result.title }}</td>
+                <td>{{ result.date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ result.position if result.attended else "-" }}</td>
+                <td>{{ "Attended" if result.attended else "Absent" }}</td>
+                <td>{{ result.remarks or " We missed you! Hope to see you next time!😊" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No results available yet.</p>
+{% endif %}
+
+{% endblock %}

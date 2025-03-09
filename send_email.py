@@ -89,6 +89,7 @@ def send_confirmation_email(email, username, event, pet_name, pet_type, pet_age)
 
         mail.send(msg)  # Send the email
 
+
 def send_update_email(email, username, event):
     with current_app.app_context():
         subject = f"🔔 Update for {event.title}"

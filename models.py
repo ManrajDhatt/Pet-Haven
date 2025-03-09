@@ -43,23 +43,18 @@ class Registration(db.Model):
 
 
 
+class Result(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    registration_id = db.Column(db.Integer, db.ForeignKey('registration.id'), nullable=False, unique=True)
+    attended = db.Column(db.Boolean, default=False, nullable=False)  # Present or Absent
+    position = db.Column(db.Integer, nullable=True)  # 1,2,...
+    points = db.Column(db.Float, default=0)  # Optional: Track performance points
+    remarks = db.Column(db.Text, nullable=True)  # Any comments (e.g., "Great performance")
+
+    # Relationship with Registration
+    registration = db.relationship('Registration', backref=db.backref('result', uselist=False, lazy=True))
 
 
 
 
 
-
-
-
-
-
-
-
-
-# class Pet(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-#     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
-#     pet_name = db.Column(db.String(100), nullable=False)
-#     pet_type = db.Column(db.String(100), nullable=False)
-#     paid = db.Column(db.Boolean, default=False)

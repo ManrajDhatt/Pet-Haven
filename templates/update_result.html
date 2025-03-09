@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Update Results{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Update Results for {{ event.name }}</h2>
+    
+    <form method="POST">
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Participant</th>
+                    <th>Pet Name</th>
+                    <th>Position</th>
+                    <th>Points</th>
+                    <th>Remarks</th>
+                    <th>Attended</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reg, user in registrations %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ reg.pet_name }}</td>
+                    
+                    {% set result = results.get(reg.id) %}
+
+                    <td>
+                        <input type="number" name="position_{{ reg.id }}" 
+                               class="form-control" value="{{ result.position or '' }}" required>
+                    </td>
+
+                    <td>
+                        <input type="number" step="0.1" name="points_{{ reg.id }}" 
+                               class="form-control" value="{{ result.points or '' }}" required>
+                    </td>
+
+                    <td>
+                        <input type="text" name="remarks_{{ reg.id }}" 
+                               class="form-control" value="{{ result.remarks or '' }}" required>
+                    </td>
+                    <td>
+                        <input type="checkbox" name="attended_{{ reg.id }}" {% if reg.result and reg.result.attended %}checked{% endif %}> 
+      
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-success mt-3">Update Results</button>
+        <a href="{{ url_for('view_results', event_id=event.id) }}" class="btn btn-secondary mt-3">Cancel</a>
+    </form>
+</div>
+{% endblock %}

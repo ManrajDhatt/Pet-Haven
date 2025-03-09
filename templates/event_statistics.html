@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+
+    <h2>Event Statistics</h2>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Total Participants</th>
+                    <th>Total Fees Collected</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in event_stats %}
+                <tr>
+                    <td>{{ event.event_title }}</td>
+                    <td>{{ event.total_participants }}</td>
+                    <td>{{ event.total_fees_collected }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Graph -->
+    <div class="graph-container">
+        <canvas id="eventChart"></canvas>
+    </div>
+
+
+    
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Link to external JavaScript file -->
+    <script src="{{ url_for('static', filename='event_stats.js') }}" defer></script>
+
+    <style>
+    
+        
+        /* Table Styling */
+        .table-container {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            text-align: center;
+        }
+
+        th {
+            background: #7c3eef;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #d11919;
+        }
+
+        /* Graph container */
+        .graph-container {
+            max-width: 900px;
+            height :500px;
+            margin: 40px auto;
+            padding: 20px;
+            /* background: white; */
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+
+    
+
+    <script id="eventStatsData" type="application/json">
+        {{ event_stats | tojson | safe }}
+    </script>
+</div>
+{% endblock %}

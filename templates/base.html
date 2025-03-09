@@ -83,7 +83,27 @@
                             <a href="{{ url_for('registrations') }}"><i class="fas fa-calendar-check"></i> My Registrations</a>
                         {% endif %}
                     </li>
+                    {% if current_user.is_admin %}
+                    <li class="nav-item {% if request.endpoint == 'manage_results' %}active{% endif %}">
+                        <a href="{{ url_for('manage_results') }}"><i class="fas fa-clipboard-list"></i> Manage Results</a>
+                    </li>
+                    {% endif %}
+            
+                    {% if not current_user.is_admin %}
+                    <li class="nav-item {% if request.endpoint == 'user_results' %}active{% endif %}">
+                        <a href="{{ url_for('user_results') }}"><i class="fas fa-poll"></i> My Results</a>
+                    </li>
+                    {% endif %}
+
+                    {% if current_user.is_admin %}
+                    <li class="nav-item {% if request.endpoint == 'event_statistics' %}active{% endif %}">
+                        <a href="{{ url_for('event_statistics') }}">
+                            <i class="fas fa-chart-bar"></i> View Stats
+                        </a>
+                    </li>
                     
+                    {% endif %}
+
                     
                     
                     

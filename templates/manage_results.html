@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Results{% endblock %}
+
+{% block content %}
+    <h1>Manage Event Results</h1>
+
+    {% if past_events %}
+        <div class="grid" id="resultsGrid">
+            {% for event in past_events %}
+            <div class="card event-card" data-event-id="{{ event.id }}"
+                 data-title="{{ event.title }}"
+                 data-location="{{ event.location }}"
+                 data-date="{{ event.date }}"
+                 data-fee="{{ event.fee }}">
+                 <img src="{{ event.image_filename }}" class="card-img" alt="{{ event.title }}">
+
+                <div class="card-content">
+                    <h2 style="margin-bottom: 2px; color: #333;">{{ event.title }}</h2>
+                    <p><i class="fa-regular fa-calendar"></i> {{ event.date }}</p>
+                    <p><i class="fa-solid fa-location-dot"></i> {{ event.location }}</p>
+                    <p class="price"><span>Fees:</span> ₹{{ event.fee }}</p>
+                    {% if event.has_result %}
+                     <a href="{{ url_for('view_results', event_id=event.id) }}" class="btn btn-primary" onclick="event.stopPropagation()">View Results</a>
+                    {% else %}
+                        <a href="{{ url_for('add_result', event_id=event.id) }}" class="btn btn-success" onclick="event.stopPropagation()">Add Result</a>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div id="modal-{{ event.id }}" class="modal" onclick="closeModal('{{ event.id }}', event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <span class="close" onclick="closeModal('{{ event.id }}')">&times;</span>
+                    <img src="{{ event.image_filename }}" class="card-img" alt="{{ event.title }}">
+
+                    <h2>{{ event.title }}</h2>
+                    <p><strong>Date:</strong> {{ event.date }}</p>
+                    <p><strong>Location:</strong> {{ event.location }}</p>
+                    <p><strong>Entry Fee:</strong> ₹{{ event.fee }}</p>
+                    <p>{{ event.description }}</p>
+                    <p><strong>Eligibility:</strong> {{ event.eligibility }}</p>
+                    <p><strong>Prizes:</strong> {{ event.prizes }}</p>
+                    {% if event.has_result %}
+                    <a href="{{ url_for('view_results', event_id=event.id) }}" class="btn btn-primary" onclick="event.stopPropagation()">View Results</a>
+                   {% else %}
+                       <a href="{{ url_for('add_result', event_id=event.id) }}" class="btn btn-success" onclick="event.stopPropagation()">Add Result</a>
+                   {% endif %}
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No results available.</p>
+    {% endif %}
+{% endblock %}

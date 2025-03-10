@@ -76,7 +76,7 @@
                     <li class="nav-item {% if request.endpoint == 'competitions' %}active{% endif %}">
                         <a href="{{ url_for('competitions') }}"><i class="fas fa-trophy"></i> Competitions</a>
                     </li>
-                    <li class="nav-item {% if request.endpoint == 'registrations' %}active{% endif %}">
+                    <li class="nav-item {% if request.endpoint == 'registrations' or request.endpoint == 'all_registrations' %}active{% endif %}">
                         {% if current_user.is_admin %}
                             <a href="{{ url_for('all_registrations') }}"><i class="fas fa-list-alt"></i> All Registrations</a>
                         {% else %}

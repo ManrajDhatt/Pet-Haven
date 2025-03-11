@@ -14,7 +14,7 @@ from send_email import send_confirmation_email, send_update_email
 from dotenv import load_dotenv
 import cloudinary.uploader
 from flask_migrate import Migrate
-
+from scheduler import start_scheduler
 from app import db
 from models import Registration
 from datetime import datetime, timezone
@@ -615,4 +615,6 @@ def event_statistics():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        start_scheduler(app)    
+        app.run(debug=True)

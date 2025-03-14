@@ -1,14 +1,18 @@
+from unittest import result
+import uuid
 from flask import Flask, abort, jsonify, render_template, redirect, session, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from sqlalchemy import func
-from models import Result, db, User, Event, Registration
+
+from models import Result, db, User, Event, Registration,insert_initial_data
+
 from forms import RegistrationForm, LoginForm, EventForm, RegistrationEventForm, ResultForm
 from config import Config
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from datetime import datetime
 from flask_mail import Message,Mail
 from send_email import send_confirmation_email, send_update_email
 from dotenv import load_dotenv
@@ -16,11 +20,11 @@ import cloudinary.uploader
 from flask_migrate import Migrate
 from scheduler import start_scheduler
 from app import db
-from models import Registration
 from datetime import datetime, timezone
 
 
 load_dotenv()  # Load environment variables from .env file
+
 
 
 app = Flask(__name__)
@@ -31,6 +35,7 @@ UPLOAD_FOLDER = 'static/images'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER  
 
 db.init_app(app)
+
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -40,39 +45,53 @@ migrate = Migrate(app, db)
 
 # Create database tables
 with app.app_context():
+    db.create_all()
+    insert_initial_data()
+
+
+
     # Hardcoded Admin
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") 
-    hashed_pw = bcrypt.generate_password_hash(ADMIN_PASSWORD).decode('utf-8')
+    # ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") 
+    # hashed_pw = bcrypt.generate_password_hash(ADMIN_PASSWORD).decode('utf-8')
     registrations = Registration.query.filter(Registration.timestamp == None).all()
 
     for reg in registrations:
         reg.timestamp = datetime.now(timezone.utc)
 
     db.session.commit()
-    if not User.query.filter_by(email="admin@example.com").first():
-        admin = User(username="admin", email="admin@example.com", password=hashed_pw, is_admin=True)
-        db.session.add(admin)
-        db.session.commit()
+    # if not User.query.filter_by(email="admin@example.com").first():
+    #     admin = User(username="admin", email="admin@example.com", password=hashed_pw, is_admin=True)
+    #     db.session.add(admin)
+    #     db.session.commit()
 
 
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return User.query.get(user_id)
+
+def is_admin():
+    return current_user.is_authenticated and current_user.user_type is None
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        existing_user = User.query.filter_by(email=form.email.data).first()  #Check if email exists
+        existing_user = User.query.filter_by(email_id=form.email.data).first()  #Check if email exists
         if existing_user:
             flash('Email is already registered. Please log in.', 'danger')
             return redirect(url_for('login'))  # Redirect to login if email exists
         
-        hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, email=form.email.data, password=hashed_pw)
+        hashed_pw = generate_password_hash(form.password.data,method='scrypt')
+        user = User(
+            user_name=form.username.data,
+            email_id=form.email.data,
+            password=hashed_pw,
+          # **************NEED TO BE UPDATED**********
+            user_type='pet_owner'
+            )
         db.session.add(user)
         db.session.commit()
         flash('Account created! You can now login.', 'success')
@@ -91,10 +110,11 @@ def home():
 def login():
     if current_user.is_authenticated:  
         return redirect(url_for('dashboard'))
+    
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
+        user = User.query.filter_by(email_id=form.email.data).first()
+        if user and check_password_hash(user.password, form.password.data):
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('Login failed. Check credentials.', 'danger')
@@ -107,20 +127,23 @@ def login():
 def competitions():
     today = datetime.today().date()
     upcoming_events = Event.query.filter(Event.date >= today).all()
-    if current_user.is_admin:
+
+    # if current_user.is_admin:
+    if is_admin():
         return render_template('admin_dashboard.html', events=upcoming_events)
     
-    events = Event.query.all()
-    registered_events = Registration.query.filter_by(user_id=current_user.id).all()
+    # events = Event.query.all()
+    # registered_events = Registration.query.filter_by(user_id=current_user.id).all()
     
-    registered_event_details = []
-    for reg in registered_events:
-        event = Event.query.get(reg.event_id)
-        if event:
-            registered_event_details.append(event)
-
+    # registered_event_details = []
+    # for reg in registered_events:
+    #     event = Event.query.get(reg.event_id)
+    #     if event:
+    #         registered_event_details.append(event)
+    registered_events = Registration.query.filter_by(user_id=current_user.user_id).all()
+    registered_event_details = [Event.query.get(reg.event_id) for reg in registered_events]
+    
     return render_template('user_dashboard.html', events=upcoming_events, registered_events=registered_event_details)
-    # return render_template('user_dashboard.html', events=Event.query.all(), registered_events=registered_events)
 
 
 @app.route('/dashboard')
@@ -132,8 +155,10 @@ def dashboard():
 @app.route('/add_event', methods=['GET', 'POST'])
 @login_required
 def add_event():
-    if not current_user.is_admin:
+    # if not current_user.is_admin:.
+    if not is_admin():
         return redirect(url_for('competitions'))
+    
     form = EventForm()  
     if form.validate_on_submit():
         # image_filename = "default.png"
@@ -165,14 +190,14 @@ def add_event():
     
     
 
-@app.route('/register/<int:event_id>', methods=['GET', 'POST'])
+@app.route('/register/<string:event_id>', methods=['GET', 'POST'])
 @login_required
 def register_event(event_id):
-    if current_user.is_admin:  # Prevent admins from registering
+    if is_admin():  # Prevent admins from registering
         flash('Admins cannot register for events!', 'danger')
         return redirect(url_for('competitions'))
     
-    existing_registration = Registration.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+    existing_registration = Registration.query.filter_by(user_id=current_user.user_id, event_id=event_id).first()
     if existing_registration:
         flash('You have already registered for this event!', 'warning')
         return redirect(url_for('competitions'))
@@ -182,7 +207,7 @@ def register_event(event_id):
 
     if form.validate_on_submit():
         registration = Registration(
-            user_id=current_user.id,
+            user_id=current_user.user_id,
             event_id=event_id,
             pet_name=form.pet_name.data,
             pet_type=form.pet_type.data,
@@ -191,7 +216,7 @@ def register_event(event_id):
         )
         db.session.add(registration)
         db.session.commit()
-        send_confirmation_email(current_user.email, current_user.username, event, form.pet_name.data, form.pet_type.data, form.pet_age.data)
+        send_confirmation_email(current_user.email_id, current_user.user_name, event, form.pet_name.data, form.pet_type.data, form.pet_age.data)
 
         flash('Successfully registered!', 'success')
         return redirect(url_for('competitions'))
@@ -203,7 +228,7 @@ def register_event(event_id):
 @app.route('/admin_dashboard')
 @login_required
 def admin_dashboard():
-    if not current_user.is_admin:
+    if not is_admin():
         return redirect(url_for('dashboard'))  # Restrict non-admin users
     events = Event.query.all()  #  Fetch all events
     return render_template('admin_dashboard.html', events=events)
@@ -211,7 +236,7 @@ def admin_dashboard():
 @app.route('/registrations')
 @login_required
 def registrations():
-    registered_events = db.session.query(Registration, Event).join(Event, Registration.event_id == Event.id).filter(Registration.user_id == current_user.id).all()
+    registered_events = db.session.query(Registration, Event).join(Event, Registration.event_id == Event.id).filter(Registration.user_id == current_user.user_id).all()
     # Convert event dates to datetime objects for comparison
     current_date = datetime.now().date()
     processed_events = []
@@ -222,14 +247,14 @@ def registrations():
     
     return render_template("registrations.html", registered_events=processed_events)
 
-@app.route('/edit_registration/<int:registration_id>', methods=['GET', 'POST'])
+@app.route('/edit_registration/<string:registration_id>', methods=['GET', 'POST'])
 @login_required
 def edit_registration(registration_id):
     registration = Registration.query.get_or_404(registration_id)
     event = Event.query.get_or_404(registration.event_id)
     
     # Check if the registration belongs to the current user
-    if registration.user_id != current_user.id:
+    if registration.user_id != current_user.user_id:
         flash('You are not authorized to edit this registration.', 'danger')
         return redirect(url_for('registrations'))
     
@@ -268,7 +293,7 @@ def settings():
     return render_template("settings.html")
 
 
-@app.route('/edit_event/<int:event_id>', methods=['GET', 'POST'])
+@app.route('/edit_event/<string:event_id>', methods=['GET', 'POST'])
 @login_required
 def edit_event(event_id):
     if not current_user.is_admin:
@@ -301,7 +326,7 @@ def edit_event(event_id):
             if 'send_notifications' in request.form:
                 registrations = Registration.query.filter_by(event_id=event.id).all()
                 for reg in registrations:
-                    send_update_email(reg.user.email, reg.user.username, event)
+                    send_update_email(reg.user.email_id, reg.user.user_name, event)
 
             return redirect(url_for('admin_dashboard'))
         except:
@@ -309,6 +334,7 @@ def edit_event(event_id):
             flash("Error updating event.", "danger")
 
     return render_template('edit_event.html', form=form, event=event)
+
 
 @app.route('/all-registrations')
 @login_required
@@ -322,12 +348,12 @@ def all_registrations():
 
 
 
-@app.route('/pay/<int:registration_id>', methods=['GET', 'POST'])
+@app.route('/pay/<string:registration_id>', methods=['GET', 'POST'])
 @login_required
 def pay_fee(registration_id):
     registration = Registration.query.get_or_404(registration_id)
 
-    if registration.user_id != current_user.id:
+    if registration.user_id != current_user.user_id:
         abort(403)  # Prevent unauthorized access
 
     registration.paid = True
@@ -338,9 +364,9 @@ def pay_fee(registration_id):
 
 @login_manager.user_loader
 def load_user(user_id):
-    return db.session.get(User, int(user_id))
+    return db.session.get(User, (user_id))
 
-@app.route('/verify_payment/<int:registration_id>', methods=['GET', 'POST'])
+@app.route('/verify_payment/<string:registration_id>', methods=['GET', 'POST'])
 @login_required
 def verify_payment(registration_id):
     if not current_user.is_admin:
@@ -354,7 +380,7 @@ def verify_payment(registration_id):
     flash("Payment verified successfully!", "success")
     return redirect(url_for('all_registrations'))
 
-@app.route('/delete_registration/<int:registration_id>', methods=['GET', 'POST'])
+@app.route('/delete_registration/<string:registration_id>', methods=['GET', 'POST'])
 @login_required
 def delete_registration(registration_id):
     if not current_user.is_admin:
@@ -390,7 +416,7 @@ def manage_results():
 
 
 
-@app.route('/event/<int:event_id>/add_result', methods=['GET', 'POST'])
+@app.route('/event/<string:event_id>/add_result', methods=['GET', 'POST'])
 @login_required
 def add_result(event_id):
     if not current_user.is_admin:
@@ -402,7 +428,7 @@ def add_result(event_id):
 
     if request.method == 'POST':
         for reg in registrations:
-            reg_id = reg.id
+            reg_id =reg.id
             attended = request.form.get(f'attended_{reg_id}') == "1"  # Checkbox handling
             position = request.form.get(f'position_{reg_id}', None) if attended else "-"
             points = request.form.get(f'points_{reg_id}', 0) if attended else "-"
@@ -422,12 +448,12 @@ def add_result(event_id):
 
         db.session.commit()
         flash("Results added successfully!", "success")
+
         return redirect(url_for('view_results', event_id=event_id))
 
     return render_template('add_result.html', event=event, registrations=registrations)
 
-
-@app.route('/event/<int:event_id>/update_result', methods=['GET', 'POST'])
+@app.route('/event/<string:event_id>/update_result', methods=['GET', 'POST'])
 @login_required
 def update_result(event_id):
     if not current_user.is_admin:
@@ -435,7 +461,7 @@ def update_result(event_id):
         return redirect(url_for('home'))
 
     event = Event.query.get_or_404(event_id)
-    registrations = db.session.query(Registration, User).join(User, Registration.user_id == User.id).filter(Registration.event_id == event_id).all()
+    registrations = db.session.query(Registration, User).join(User, Registration.user_id == User.user_id).filter(Registration.event_id == event_id).all()
     results = {res.registration_id: res for res in Result.query.filter(Result.registration_id.in_([r[0].id for r in registrations])).all()}
 
     if not results:
@@ -445,29 +471,48 @@ def update_result(event_id):
     if request.method == 'POST':
         for reg, user in registrations:
             reg_id = reg.id
-            attended = request.form.get(f'attended_{reg_id}') == "1"
-            position = request.form.get(f'position_{reg_id}', None) if attended else "-"
-            points = request.form.get(f'points_{reg_id}', 0) if attended else "-"
-            remarks = request.form.get(f'remarks_{reg_id}', "") if attended else "Absent - We missed you! Hope to see you next time! 😊"
 
-            position = int(position) if attended and position else None
-            points = float(points) if attended and points else None
+            # Fix checkbox issue (it returns 'on' when checked)
+            attended = request.form.get(f'attended_{reg_id}') == "on"
+
+            # Fix handling of empty values
+            position = request.form.get(f'position_{reg_id}', None)
+            points = request.form.get(f'points_{reg_id}', None)
+            remarks = request.form.get(f'remarks_{reg_id}', "").strip()
+
+            # Convert types properly
+            position = int(position) if attended and position and position.isdigit() else None
+            try:
+                points = float(points) if attended and points and points.replace(".", "", 1).isdigit() else None
+            except ValueError:
+                points = None
+
+            if not attended:
+                remarks = "Absent - We missed you! Hope to see you next time! 😊"
 
             existing_result = results.get(reg_id)
             if existing_result:
+                print(f"Updating result for {reg_id}")
+                print(f"  Before update: attended={existing_result.attended}, position={existing_result.position}, points={existing_result.points}")
+
                 existing_result.attended = attended
                 existing_result.position = position
                 existing_result.points = points
                 existing_result.remarks = remarks
 
+                print(f"  After update: attended={existing_result.attended}, position={existing_result.position}, points={existing_result.points}")
+
+        db.session.flush()  # Ensure SQLAlchemy detects changes
         db.session.commit()
+
         flash("Results updated successfully!", "success")
         return redirect(url_for('view_results', event_id=event_id))
 
     return render_template('update_result.html', event=event, registrations=registrations, results=results)
 
 
-@app.route('/event/<int:event_id>/results')
+
+@app.route('/event/<string:event_id>/results')
 @login_required
 def view_results(event_id):
     if not current_user.is_admin:
@@ -475,14 +520,9 @@ def view_results(event_id):
         return redirect(url_for('home'))
 
     event = Event.query.get_or_404(event_id)
-    results = Result.query.join(Registration).filter(Registration.event_id == event_id).all()
+    results = Result.query.join(Registration).filter(Registration.event_id== event_id).all()
 
     return render_template('view_results.html', event=event, results=results)
-
-
-
-
-
 
 
 
@@ -490,7 +530,7 @@ def view_results(event_id):
 @app.route("/user/results")
 @login_required
 def user_results():
-    user_id = current_user.id
+    user_id = current_user.user_id
 
     # Get all past events and their results for the user
     past_results = (
@@ -527,22 +567,12 @@ def user_results():
 
 
 
-
-
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     # flash('you have been logged out.','info')
     return redirect(url_for('login'))
-
-
-
-
-
-
-
 
 
 @app.route('/admin/event_statistics')
@@ -565,9 +595,9 @@ def event_statistics():
 
     # Most Active Users
     most_active_users = (
-        db.session.query(User.username, func.count(Registration.id).label("event_count"))
+        db.session.query(User.user_name, func.count(Registration.id).label("event_count"))
         .join(Registration)
-        .group_by(User.id)
+        .group_by(User.user_id)
         .order_by(func.count(Registration.id).desc())
         .limit(5)
         .all()
@@ -581,9 +611,9 @@ def event_statistics():
 
         # Fetch top 3 winners
         winners = [
-        {"username": winner.username, "position": winner.position} for winner in db.session.query(User.username, Result.position)
+        {"username": winner.user_name, "position": winner.position} for winner in db.session.query(User.user_name, Result.position)
         .join(Registration, Registration.id == Result.registration_id)
-        .join(User, Registration.user_id == User.id)
+        .join(User, Registration.user_id == User.user_id)
         .filter(Registration.event_id == event.id, Result.position.isnot(None))
         .order_by(Result.position.asc())
         .limit(3)

@@ -15,7 +15,7 @@
         &#9776; 
     </div>
         <div class="navbar" id="navbar">
-            <h2>Welcome, {{ current_user.username }}</h2>
+            <h2>Welcome, {{ current_user.user_name }}</h2>
             
            
             <div class="nav-right">
@@ -30,11 +30,11 @@
                 
                 <div class="profile-dropdown">
                     <div class="profile" onclick="toggleDropdown()">
-                        <div class="profile-pic">{{ current_user.username[0] }}</div>
+                        <div class="profile-pic">{{ current_user.user_name[0] }}</div>
                     </div>
                     
                     <div class="dropdown-menu" id="profileDropdown">
-                        <p class="dropdown-username">{{ current_user.username }}</p>
+                        <p class="dropdown-username">{{ current_user.user_name }}</p>
                         <div class="settings">
                             <p>
                                 <a href="{{url_for('settings')}}">
@@ -102,11 +102,7 @@
                         </a>
                     </li>
                     
-                    {% endif %}
-
-                    
-                    
-                    
+                    {% endif %}    
                 </ul>
             </div>
     {% endif %}

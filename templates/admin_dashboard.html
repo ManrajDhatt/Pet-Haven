@@ -32,7 +32,7 @@
     {% if events %}
         <div class="grid" id="competitionsGrid">
             {% for event in events %}
-            <div class="card event-card" data-event-id="{{ event.id }}"
+            <div class="card event-card" data-event-id={{ event.id }}
                  data-title="{{ event.title }}"
                  data-location="{{ event.location }}"
                  data-date="{{ event.date }}"

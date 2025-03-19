@@ -12,27 +12,35 @@
                 <th>Event</th>
                 <th>Email</th>
                 <th>Registered On</th>
+                <th>Actions</th> {# Added Actions Column #}
             </tr>
         </thead>
         <tbody>
             {% for reg in registrations %}
             <tr>
-                <td>{{ reg.id }}</td>
-                <td>{{ reg.user.username }}</td>  {# Fixed: Changed name → username #}
+                <td>{{ reg.id[:8] }}</td>
+                <td>{{ reg.user.user_name }}</td>  
                 <td>{{ reg.event.title }}</td>
-                <td>{{ reg.user.email }}</td>
+                <td>{{ reg.user.email_id }}</td>
                 <td>
                     {% if reg.timestamp %}
                         {{ reg.timestamp.strftime('%Y-%m-%d %H:%M') }}
                     {% else %}
-                        N/A  {# Handles None case #}
+                        N/A  
                     {% endif %}
-                    <td>
-                        {% if not reg.paid %}
-                            <a href="{{ url_for('verify_payment', registration_id=reg.id) }}" class="btn btn-success btn-sm">Verify Payment</a>
-                        {% endif %}
+                </td>
+                <td class="mb-4">
+                    {% if not reg.paid %}
+                        <a  href="{{ url_for('verify_payment', registration_id=reg.id) }}" class="btn btn-success btn-sm ">Verify Payment</a>
+                    {% endif %}
+                    
+                    {% if not reg.result %}  
                         <a href="{{ url_for('delete_registration', registration_id=reg.id) }}" class="btn btn-danger btn-sm">Delete</a>
-                    </td>
+                    {% else %}
+                        <button class="btn btn-danger btn-sm" disabled style="opacity: 0.5;" title="Cannot delete after result is declared">
+                            Delete
+                        </button>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

@@ -21,7 +21,7 @@
             <tbody>
                 {% for reg, user in registrations %}
                 <tr>
-                    <td>{{ user.username }}</td>
+                    <td>{{ user.user_name }}</td>
                     <td>{{ reg.pet_name }}</td>
                     
                     {% set result = results.get(reg.id) %}
@@ -35,11 +35,40 @@
                         <input type="number" step="0.1" name="points_{{ reg.id }}" 
                                class="form-control" value="{{ result.points or '' }}" required>
                     </td>
-
                     <td>
-                        <input type="text" name="remarks_{{ reg.id }}" 
-                               class="form-control" value="{{ result.remarks or '' }}" required>
+                        <select name="remarks_{{ reg.id }}" class="form-control">
+                            {% set prev_remarks = result.remarks if result else "" %}
+                            <option value="Best in Show – You Earned It! ⭐" 
+                                {% if prev_remarks == "Best in Show – You Earned It! ⭐" %} selected {% endif %}>
+                                Best in Show – You Earned It! ⭐
+                            </option>
+                            <option value="Unstoppable Champion! 🏆" 
+                                {% if prev_remarks == "Unstoppable Champion! 🏆" %} selected {% endif %}>
+                                Unstoppable Champion! 🏆
+                            </option>
+                            <option value="Just a Step Away – Next Time, the Crown is Yours! 👏" 
+                                {% if prev_remarks == "Just a Step Away – Next Time, the Crown is Yours! 👏" %} selected {% endif %}>
+                                Just a Step Away – Next Time, the Crown is Yours! 👏
+                            </option>
+                            <option value="Amazing Performance – Keep Up the Great Work! 🔥" 
+                                {% if prev_remarks == "Amazing Performance – Keep Up the Great Work! 🔥" %} selected {% endif %}>
+                                Amazing Performance – Keep Up the Great Work! 🔥
+                            </option>
+                            <option value="Every Champion Starts as a Competitor – Keep Going! 🚀" 
+                                {% if prev_remarks == "Every Champion Starts as a Competitor – Keep Going! 🚀" %} selected {% endif %}>
+                                Every Champion Starts as a Competitor – Keep Going! 🚀
+                            </option>
+                            <option value="Absent - We missed you! Hope to see you next time! 😊" 
+                                {% if prev_remarks == "Absent - We missed you! Hope to see you next time! 😊" %} selected {% endif %}>
+                                Absent - We missed you! Hope to see you next time! 😊
+                            </option>
+                        </select>
                     </td>
+                    
+                    <!-- <td> -->
+                        <!-- <input type="text" name="remarks_{{ reg.id }}" 
+                               class="form-control" value="{{ result.remarks or '' }}" required> -->
+                    <!-- </td> -->
                     <td>
                         <input type="checkbox" name="attended_{{ reg.id }}" {% if reg.result and reg.result.attended %}checked{% endif %}> 
       
